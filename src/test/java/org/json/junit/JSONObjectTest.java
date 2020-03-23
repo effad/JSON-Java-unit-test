@@ -123,7 +123,7 @@ public class JSONObjectTest {
         assertTrue("expected \"falseKey\":false", Boolean.FALSE.equals(jsonObjectByName.query("/falseKey")));
         assertTrue("expected \"nullKey\":null", JSONObject.NULL.equals(jsonObjectByName.query("/nullKey")));
         assertTrue("expected \"stringKey\":\"hello world!\"", "hello world!".equals(jsonObjectByName.query("/stringKey")));
-        assertTrue("expected \"doubleKey\":-23.45e67", Double.valueOf("-23.45e67").equals(jsonObjectByName.query("/doubleKey")));
+        assertTrue("expected \"doubleKey\":-23.45e67", new BigDecimal("-23.45e67").equals(jsonObjectByName.query("/doubleKey")));
     }
 
     /**
@@ -725,15 +725,15 @@ public class JSONObjectTest {
         assertTrue("-0.0 Should be a Double!",JSONObject.stringToValue("-0.0") instanceof Double);
         assertTrue("'-' Should be a String!",JSONObject.stringToValue("-") instanceof String);
         assertTrue( "0.2 should be a Double!",
-                JSONObject.stringToValue( "0.2" ) instanceof Double );
-        assertTrue( "Doubles should be Doubles, even when incorrectly converting floats!",
-                JSONObject.stringToValue( new Double( "0.2f" ).toString() ) instanceof Double );
+                JSONObject.stringToValue( "0.2" ) instanceof BigDecimal );
+        assertTrue( "0.2f should be BigDecimal!",
+                JSONObject.stringToValue( new Double( "0.2f" ).toString() ) instanceof BigDecimal );
         /**
          * This test documents a need for BigDecimal conversion.
          */
         Object obj = JSONObject.stringToValue( "299792.457999999984" );
-        assertTrue( "evaluates to 299792.458 doubld instead of 299792.457999999984 BigDecimal!",
-                 obj.equals(new Double(299792.458)) );
+        assertTrue( "evaluates to 299792.457999999984 BigDecimal!",
+                 obj.equals(new BigDecimal("299792.457999999984")) );
         assertTrue( "1 should be an Integer!",
                 JSONObject.stringToValue( "1" ) instanceof Integer );
         assertTrue( "Integer.MAX_VALUE should still be an Integer!",
@@ -744,8 +744,8 @@ public class JSONObjectTest {
                 JSONObject.stringToValue( new Long( Long.MAX_VALUE ).toString() ) instanceof Long );
 
         String str = new BigInteger( new Long( Long.MAX_VALUE ).toString() ).add( BigInteger.ONE ).toString();
-        assertTrue( "Really large integers currently evaluate to string",
-                JSONObject.stringToValue(str).equals("9223372036854775808"));
+        assertTrue( "Really large integers also evaluate to BigInteger",
+                JSONObject.stringToValue(str).equals(new BigInteger("9223372036854775808")));
     }
 
     /**
@@ -765,17 +765,17 @@ public class JSONObjectTest {
             "}";
         JSONObject jsonObject = new JSONObject(str);
         // Comes back as a double, but loses precision
-        assertTrue( "numberWithDecimals currently evaluates to double 299792.458",
-                jsonObject.get( "numberWithDecimals" ).equals( new Double( "299792.458" ) ) );
+        assertTrue( "numberWithDecimals currently evaluates to double 299792.457999999984",
+                jsonObject.get( "numberWithDecimals" ).equals( new BigDecimal( "299792.457999999984" ) ) );
         Object obj = jsonObject.get( "largeNumber" );
-        assertTrue("largeNumber currently evaluates to string",
-                "12345678901234567890".equals(obj));
+        assertTrue("largeNumber currently evaluates to BigInteger",
+                new BigInteger("12345678901234567890").equals(obj));
         // comes back as a double but loses precision
-        assertTrue( "preciseNumber currently evaluates to double 0.2",
-                jsonObject.get( "preciseNumber" ).equals(new Double(0.2)));
+        assertTrue( "preciseNumber currently evaluates to BigDecimal 0.2000000000000000111",
+                jsonObject.get( "preciseNumber" ).equals(new BigDecimal("0.2000000000000000111")));
         obj = jsonObject.get( "largeExponent" );
-        assertTrue("largeExponent should currently evaluates as a string",
-                "-23.45e2327".equals(obj));
+        assertTrue("largeExponent should currently evaluates as a BigDecimal",
+                new BigDecimal("-23.45e2327").equals(obj));
     }
 
     /**
@@ -812,18 +812,18 @@ public class JSONObjectTest {
         obj = jsonObject.get("negativeNaN");
         assertTrue( "negativeNaN currently evaluates to string",
                 obj.equals("-NaN"));
-        assertTrue( "negativeFraction currently evaluates to double -0.01",
-                jsonObject.get( "negativeFraction" ).equals(new Double(-0.01)));
-        assertTrue( "tooManyZerosFraction currently evaluates to double 0.001",
-                jsonObject.get( "tooManyZerosFraction" ).equals(new Double(0.001)));
+        assertTrue( "negativeFraction currently evaluates to BigDecimal -0.01",
+                jsonObject.get( "negativeFraction" ).equals(new BigDecimal("-0.01")));
+        assertTrue( "tooManyZerosFraction currently evaluates to BigDecimal 0.001",
+                jsonObject.get( "tooManyZerosFraction" ).equals(new BigDecimal("0.001")));
         assertTrue( "negativeHexFloat currently evaluates to double -3.99951171875",
-                jsonObject.get( "negativeHexFloat" ).equals(new Double(-3.99951171875)));
+                jsonObject.get( "negativeHexFloat" ).equals(Double.valueOf(-3.99951171875)));
         assertTrue("hexFloat currently evaluates to double 4.9E-324",
-                jsonObject.get("hexFloat").equals(new Double(4.9E-324)));
+                jsonObject.get("hexFloat").equals(Double.valueOf(4.9E-324)));
         assertTrue("floatIdentifier currently evaluates to double 0.1",
-                jsonObject.get("floatIdentifier").equals(new Double(0.1)));
+                jsonObject.get("floatIdentifier").equals(Double.valueOf(0.1)));
         assertTrue("doubleIdentifier currently evaluates to double 0.1",
-                jsonObject.get("doubleIdentifier").equals(new Double(0.1)));
+                jsonObject.get("doubleIdentifier").equals(Double.valueOf(0.1)));
     }
 
     /**
@@ -1083,11 +1083,11 @@ public class JSONObjectTest {
          * might inconvenience users.
          */
         obj = JSONObject.stringToValue(bigInteger.toString());
-        assertTrue("stringToValue() turns bigInteger string into string",
-                obj instanceof String);
+        assertTrue("stringToValue() turns bigInteger string into BigInteger",
+                obj instanceof BigInteger);
         obj = JSONObject.stringToValue(bigDecimal.toString());
-        assertTrue("stringToValue() changes bigDecimal string",
-                !obj.toString().equals(bigDecimal.toString()));
+        assertTrue("stringToValue() does not change bigDecimal string",
+                obj.toString().equals(bigDecimal.toString()));
 
         /**
          * wrap() vs put() big number behavior is now the same.
@@ -1352,7 +1352,7 @@ public class JSONObjectTest {
         assertTrue("expected 6 top level items", ((Map<?,?>)(JsonPath.read(doc, "$"))).size() == 6);
         assertTrue("expected 3", Integer.valueOf(3).equals(jsonObject.query("/keyInt")));
         assertTrue("expected 9999999993", Long.valueOf(9999999993L).equals(jsonObject.query("/keyLong")));
-        assertTrue("expected 3.1", Double.valueOf(3.1).equals(jsonObject.query("/keyDouble")));
+        assertTrue("expected 3.1", new BigDecimal("3.1").equals(jsonObject.query("/keyDouble")));
         assertTrue("expected 123456789123456789123456789123456781", new BigInteger("123456789123456789123456789123456781").equals(jsonObject.query("/keyBigInt")));
         assertTrue("expected 123456789123456789123456789123456781.1", new BigDecimal("123456789123456789123456789123456781.1").equals(jsonObject.query("/keyBigDec")));
 
@@ -2415,7 +2415,7 @@ public class JSONObjectTest {
         assertTrue("key3 list val 1 should not be null", key3Val1List != null);
         assertTrue("key3 list val 1 should have 2 elements", key3Val1List.size() == 2);
         assertTrue("key3 list val 1 list element 1 should be value1", key3Val1List.get(0).equals("value1"));
-        assertTrue("key3 list val 1 list element 2 should be 2.1", key3Val1List.get(1).equals(Double.valueOf("2.1")));
+        assertTrue("key3 list val 1 list element 2 should be 2.1", key3Val1List.get(1).equals(new BigDecimal("2.1")));
 
         List<?> key3Val2List = (List<?>)key3List.get(1);
         assertTrue("key3 list val 2 should not be null", key3Val2List != null);

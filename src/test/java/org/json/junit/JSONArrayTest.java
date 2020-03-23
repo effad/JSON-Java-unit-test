@@ -334,7 +334,7 @@ public class JSONArrayTest {
         assertTrue("expected \"true\"", "true".equals(jsonArray.query("/2")));
         assertTrue("expected \"false\"", "false".equals(jsonArray.query("/3")));
         assertTrue("expected hello", "hello".equals(jsonArray.query("/4")));
-        assertTrue("expected 0.002345", Double.valueOf(0.002345).equals(jsonArray.query("/5")));
+        assertTrue("expected 0.002345", new BigDecimal("0.002345").equals(jsonArray.query("/5")));
         assertTrue("expected \"23.45\"", "23.45".equals(jsonArray.query("/6")));
         assertTrue("expected 42", Integer.valueOf(42).equals(jsonArray.query("/7")));
         assertTrue("expected \"43\"", "43".equals(jsonArray.query("/8")));
@@ -763,10 +763,10 @@ public class JSONArrayTest {
         assertTrue("Array string",
                 "hello".equals(it.next()));
 
-        assertTrue("Array double",
-                new Double(23.45e-4).equals(it.next()));
-        assertTrue("Array string double",
-                new Double(23.45).equals(Double.parseDouble((String)it.next())));
+        assertTrue("Array BigDecimal",
+                new BigDecimal("23.45e-4").equals(it.next()));
+        assertTrue("Array String BigDecimal",
+                "23.45".equals((String)it.next()));
 
         assertTrue("Array value int",
                 new Integer(42).equals(it.next()));
@@ -969,7 +969,7 @@ public class JSONArrayTest {
         assertTrue("val3 list val 1 should not be null", val3Val1List != null);
         assertTrue("val3 list val 1 should have 2 elements", val3Val1List.size() == 2);
         assertTrue("val3 list val 1 list element 1 should be value1", val3Val1List.get(0).equals("value1"));
-        assertTrue("val3 list val 1 list element 2 should be 2.1", val3Val1List.get(1).equals(Double.valueOf("2.1")));
+        assertTrue("val3 list val 1 list element 2 should be 2.1", val3Val1List.get(1).equals(new BigDecimal("2.1")));
 
         List<?> val3Val2List = (List<?>)val3List.get(1);
         assertTrue("val3 list val 2 should not be null", val3Val2List != null);
