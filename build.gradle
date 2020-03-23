@@ -30,12 +30,12 @@ dependencies {
 
 test { finalizedBy jacocoTestReport }
 jacocoTestReport{
-    additionalSourceDirs = files(sourceSets.main.allJava.srcDirs)
+    additionalSourceDirs(files(sourceSets.main.allJava.srcDirs))
     reports {
         xml.enabled false
         csv.enabled false
-        html.destination "${buildDir}/reports/jacoco/html"
+        html.destination(file("${buildDir}/reports/jacoco/html"))
     }
-    executionData = files('build/jacoco/test.exec')
+    executionData(files('build/jacoco/test.exec'))
 }
 
